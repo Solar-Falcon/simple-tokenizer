@@ -344,6 +344,59 @@ impl<'s> Tokens<'s> {
             .map(|s| self.split(s.len()))
     }
 
+    /// Limit the input to the next `n` bytes.
+    /// Returns `true` if successful (`n` lands on a char boundary).
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use simple_tokenizer::*;
+    /// 
+    /// let mut tokens = "123456".as_tokens();
+    /// 
+    /// assert!(tokens.limit_bytes(4));
+    /// assert_eq!(tokens.remainder(), "1234");
+    /// 
+    /// ```
+    pub fn limit_bytes(&mut self, n: usize) -> bool {
+        if self.remaining_input.is_char_boundary(n) {
+            self.remaining_input = &self.remaining_input[..n];
+            true
+        } else {
+            false
+        }
+    }
+
+    /// Attempts to split the `Tokens` into two.
+    /// Similar to [`str::split_at()`](https://doc.rust-lang.org/std/primitive.str.html#method.split_at).
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use simple_tokenizer::*;
+    /// 
+    /// let mut tokens = "1231234".as_tokens();
+    /// 
+    /// let (first, second) = tokens.split_bytes(3).unwrap();
+    /// 
+    /// assert_eq!(first.remainder(), "123");
+    /// assert_eq!(second.remainder(), "1234");
+    /// assert_eq!(second.offset(), Offset(3));
+    /// 
+    /// ```
+    pub fn split_bytes(self, n: usize) -> Option<(Tokens<'s>, Tokens<'s>)> {
+        let mut first = self.clone();
+        let mut second = self;
+
+        if second.bytes(n).is_some() {
+            first.limit_bytes(n);
+
+            Some((first, second))
+        } else {
+            None
+        }
+    }
+
     /// Consume the next `n` characters.
     /// Doesn't advance if there aren't enough characters left.
     ///
@@ -394,6 +447,59 @@ impl<'s> Tokens<'s> {
             .map(|s| self.split(s.len()))
     }
 
+    /// Limits the input to the next `n` characters.
+    /// Returns `true` if successful (>=n characters left in the input).
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use simple_tokenizer::*;
+    /// 
+    /// let mut tokens = "123456".as_tokens();
+    /// 
+    /// assert!(tokens.limit_chars(4));
+    /// assert_eq!(tokens.remainder(), "1234");
+    /// 
+    /// ```
+    pub fn limit_chars(&mut self, n: usize) -> bool {
+        if let Some((i, _)) = self.remaining_input.char_indices().nth(n) {
+            self.remaining_input = &self.remaining_input[..i];
+            true
+        } else {
+            false
+        }
+    }
+
+    /// Attempts to split the `Tokens` into two.
+    /// Similar to [`str::split_at()`](https://doc.rust-lang.org/std/primitive.str.html#method.split_at), but `n` is in characters.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use simple_tokenizer::*;
+    /// 
+    /// let mut tokens = "1231234".as_tokens();
+    /// 
+    /// let (first, second) = tokens.split_chars(3).unwrap();
+    /// 
+    /// assert_eq!(first.remainder(), "123");
+    /// assert_eq!(second.remainder(), "1234");
+    /// assert_eq!(second.offset(), Offset(3));
+    /// 
+    /// ```
+    pub fn split_chars(self, n: usize) -> Option<(Tokens<'s>, Tokens<'s>)> {
+        let mut first = self.clone();
+        let mut second = self;
+
+        if second.chars(n).is_some() {
+            first.limit_chars(n);
+
+            Some((first, second))
+        } else {
+            None
+        }
+    }
+
     /// Consume characters while `f` returns true.
     /// Returns the consumed substring.
     ///
@@ -415,6 +521,58 @@ impl<'s> Tokens<'s> {
             .last()
             .map(|(i, ch)| self.split(i + ch.len_utf8()))
             .unwrap_or("")
+    }
+
+    /// Limit the input to the next amount of characters, for which `f` returns `true`.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use simple_tokenizer::*;
+    /// 
+    /// let mut tokens = "line 1\nline 2".as_tokens();
+    /// 
+    /// tokens.limit_while(|ch| ch != '\n');
+    /// assert_eq!(tokens.remainder(), "line 1");
+    /// 
+    /// ```
+    pub fn limit_while(&mut self, mut f: impl FnMut(char) -> bool) {
+        if let Some((i, ch)) = self
+            .remaining_input
+            .char_indices()
+            .take_while(|(_, ch)| f(*ch))
+            .last()
+        {
+            self.remaining_input = &self.remaining_input[..i + ch.len_utf8()];
+        }
+    }
+
+    /// Attempts to split the `Tokens` into two.
+    /// Similar to [`str::split_at()`](https://doc.rust-lang.org/std/primitive.str.html#method.split_at).
+    /// The split point is determined by `f`.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use simple_tokenizer::*;
+    /// 
+    /// let mut tokens = "12345abcdef".as_tokens();
+    /// 
+    /// let (first, second) = tokens.split_while(char::is_numeric);
+    /// 
+    /// assert_eq!(first.remainder(), "12345");
+    /// assert_eq!(second.remainder(), "abcdef");
+    /// assert_eq!(second.offset(), Offset(5));
+    /// 
+    /// ```
+    pub fn split_while(self, f: impl FnMut(char) -> bool) -> (Tokens<'s>, Tokens<'s>) {
+        let mut first = self.clone();
+        let mut second = self;
+
+        let n = second.take_while(f).len();
+        first.limit_bytes(n);
+
+        (first, second)
     }
 
     fn split(&mut self, i: usize) -> &str {
