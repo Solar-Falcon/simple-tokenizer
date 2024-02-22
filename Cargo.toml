@@ -1,6 +1,6 @@
 [package]
 name = "simple-tokenizer"
-version = "0.3.0"
+version = "0.4.0"
 description = "A tiny no_std tokenizer with line & column tracking."
 authors = ["Solar-Falcon"]
 edition = "2021"
@@ -13,4 +13,4 @@ readme = "README.md"
 yap = { version = "0.12", optional = true }
 
 [features]
-default = []
+default = ["yap"]

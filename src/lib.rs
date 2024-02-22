@@ -4,7 +4,7 @@
 
 use core::fmt::{self, Display};
 
-#[allow(missing_docs)]
+/// 
 #[cfg(feature = "yap")]
 pub mod yap_support;
 
