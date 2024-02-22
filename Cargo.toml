@@ -13,4 +13,4 @@ readme = "README.md"
 yap = { version = "0.12", optional = true }
 
 [features]
-default = ["yap"]
+default = []

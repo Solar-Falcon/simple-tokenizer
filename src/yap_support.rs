@@ -24,8 +24,8 @@ impl yap::TokenLocation for Location {
 }
 
 /// Wrapper around `Tokens` that implements `yap::Tokens`.
-/// 
-/// Separate struct to avoid confusion, since both have a few similar (or outright identical)
+///
+/// This is a separate struct to avoid confusion, since both have a few similar (or outright identical)
 /// method names that may not work as identically as their names might suggest.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct YapTokens<'s> {
