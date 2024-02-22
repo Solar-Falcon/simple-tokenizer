@@ -4,4 +4,13 @@ version = 3
 
 [[package]]
 name = "simple-tokenizer"
-version = "0.2.0"
+version = "0.3.0"
+dependencies = [
+ "yap",
+]
+
+[[package]]
+name = "yap"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bfe269e7b803a5e8e20cbd97860e136529cd83bf2c9c6d37b142467e7e1f051f"

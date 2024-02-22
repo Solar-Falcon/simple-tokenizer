@@ -1,6 +1,6 @@
 [package]
 name = "simple-tokenizer"
-version = "0.2.0"
+version = "0.3.0"
 description = "A tiny no_std tokenizer with line & column tracking."
 authors = ["Solar-Falcon"]
 edition = "2021"
@@ -8,3 +8,9 @@ license = "MIT"
 repository = "https://github.com/Solar-Falcon/simple-tokenizer"
 categories = ["no-std", "no-std::no-alloc", "parsing"]
 readme = "README.md"
+
+[dependencies]
+yap = { version = "0.12", optional = true }
+
+[features]
+default = []

@@ -63,3 +63,7 @@ assert!(tokens.is_at_end());
 assert_eq!(fn_name, "function");
 assert_eq!(args.as_slice(), &["123", "other_argument", "456"]);
 ```
+
+## Cargo features
+
+* `yap` (off by default): implements [`yap::Tokens`](https://docs.rs/yap/latest/yap/trait.Tokens.html) for `Tokens<'_>`.

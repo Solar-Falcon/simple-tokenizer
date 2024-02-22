@@ -4,6 +4,10 @@
 
 use core::fmt::{self, Display};
 
+#[allow(missing_docs)]
+#[cfg(feature = "yap")]
+pub mod yap_support;
+
 /// Byte range in the source input.
 pub type Span = core::ops::Range<usize>;
 
@@ -346,17 +350,17 @@ impl<'s> Tokens<'s> {
 
     /// Limit the input to the next `n` bytes.
     /// Returns `true` if successful (`n` lands on a char boundary).
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```rust
     /// use simple_tokenizer::*;
-    /// 
+    ///
     /// let mut tokens = "123456".as_tokens();
-    /// 
+    ///
     /// assert!(tokens.limit_bytes(4));
     /// assert_eq!(tokens.remainder(), "1234");
-    /// 
+    ///
     /// ```
     pub fn limit_bytes(&mut self, n: usize) -> bool {
         if self.remaining_input.is_char_boundary(n) {
@@ -369,20 +373,20 @@ impl<'s> Tokens<'s> {
 
     /// Attempts to split the `Tokens` into two.
     /// Similar to [`str::split_at()`](https://doc.rust-lang.org/std/primitive.str.html#method.split_at).
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```rust
     /// use simple_tokenizer::*;
-    /// 
+    ///
     /// let mut tokens = "1231234".as_tokens();
-    /// 
+    ///
     /// let (first, second) = tokens.split_bytes(3).unwrap();
-    /// 
+    ///
     /// assert_eq!(first.remainder(), "123");
     /// assert_eq!(second.remainder(), "1234");
     /// assert_eq!(second.offset(), Offset(3));
-    /// 
+    ///
     /// ```
     pub fn split_bytes(self, n: usize) -> Option<(Tokens<'s>, Tokens<'s>)> {
         let mut first = self.clone();
@@ -449,17 +453,17 @@ impl<'s> Tokens<'s> {
 
     /// Limits the input to the next `n` characters.
     /// Returns `true` if successful (>=n characters left in the input).
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```rust
     /// use simple_tokenizer::*;
-    /// 
+    ///
     /// let mut tokens = "123456".as_tokens();
-    /// 
+    ///
     /// assert!(tokens.limit_chars(4));
     /// assert_eq!(tokens.remainder(), "1234");
-    /// 
+    ///
     /// ```
     pub fn limit_chars(&mut self, n: usize) -> bool {
         if let Some((i, _)) = self.remaining_input.char_indices().nth(n) {
@@ -472,20 +476,20 @@ impl<'s> Tokens<'s> {
 
     /// Attempts to split the `Tokens` into two.
     /// Similar to [`str::split_at()`](https://doc.rust-lang.org/std/primitive.str.html#method.split_at), but `n` is in characters.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```rust
     /// use simple_tokenizer::*;
-    /// 
+    ///
     /// let mut tokens = "1231234".as_tokens();
-    /// 
+    ///
     /// let (first, second) = tokens.split_chars(3).unwrap();
-    /// 
+    ///
     /// assert_eq!(first.remainder(), "123");
     /// assert_eq!(second.remainder(), "1234");
     /// assert_eq!(second.offset(), Offset(3));
-    /// 
+    ///
     /// ```
     pub fn split_chars(self, n: usize) -> Option<(Tokens<'s>, Tokens<'s>)> {
         let mut first = self.clone();
@@ -524,17 +528,17 @@ impl<'s> Tokens<'s> {
     }
 
     /// Limit the input to the next amount of characters, for which `f` returns `true`.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```rust
     /// use simple_tokenizer::*;
-    /// 
+    ///
     /// let mut tokens = "line 1\nline 2".as_tokens();
-    /// 
+    ///
     /// tokens.limit_while(|ch| ch != '\n');
     /// assert_eq!(tokens.remainder(), "line 1");
-    /// 
+    ///
     /// ```
     pub fn limit_while(&mut self, mut f: impl FnMut(char) -> bool) {
         if let Some((i, ch)) = self
@@ -550,20 +554,20 @@ impl<'s> Tokens<'s> {
     /// Attempts to split the `Tokens` into two.
     /// Similar to [`str::split_at()`](https://doc.rust-lang.org/std/primitive.str.html#method.split_at).
     /// The split point is determined by `f`.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```rust
     /// use simple_tokenizer::*;
-    /// 
+    ///
     /// let mut tokens = "12345abcdef".as_tokens();
-    /// 
+    ///
     /// let (first, second) = tokens.split_while(char::is_numeric);
-    /// 
+    ///
     /// assert_eq!(first.remainder(), "12345");
     /// assert_eq!(second.remainder(), "abcdef");
     /// assert_eq!(second.offset(), Offset(5));
-    /// 
+    ///
     /// ```
     pub fn split_while(self, f: impl FnMut(char) -> bool) -> (Tokens<'s>, Tokens<'s>) {
         let mut first = self.clone();
@@ -615,5 +619,13 @@ where
     #[inline]
     fn as_tokens(&self) -> Tokens {
         Tokens::new(self.as_ref())
+    }
+}
+
+impl<'s> AsTokens for Tokens<'s> {
+    #[inline]
+    fn as_tokens(&self) -> Tokens<'_> {
+        // it is very cheap anyway
+        self.clone()
     }
 }
