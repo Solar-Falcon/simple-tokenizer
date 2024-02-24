@@ -4,7 +4,10 @@
 
 use core::fmt::{self, Display};
 
-///
+#[cfg(feature = "yap")]
+pub use yap;
+
+/// Support for `yap` crate.
 #[cfg(feature = "yap")]
 pub mod yap_support;
 
@@ -94,7 +97,7 @@ impl Position {
 impl Display for Position {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "[line {}, col{}]", self.line, self.column)
+        write!(f, "[line {}, col {}]", self.line, self.column)
     }
 }
 
