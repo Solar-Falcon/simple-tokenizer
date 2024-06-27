@@ -67,28 +67,35 @@ impl Position {
     /// let mut pos = Position::starting();
     ///
     /// assert_eq!(pos.update_from_str("line 1\nline 2\nlong line 3"), Position { line: 3, column: 12 });
+    /// assert_eq!(pos.update_from_str(""), Position { line: 3, column: 12 });
+    /// assert_eq!(pos.update_from_str("continuation"), Position { line: 3, column: 24 });
     ///
     /// ```
     pub fn update_from_str(&mut self, s: &str) -> Self {
-        let mut last_pos = 0;
+        let mut last_line_border = None;
 
-        let lines = s
-            .bytes()
-            .enumerate()
-            .filter(|(i, byte)| {
-                if *byte == b'\n' {
-                    last_pos = *i;
-                    true
-                } else {
-                    false
-                }
-            })
-            .count() as u32;
+        let added_lines = s.bytes().enumerate().filter(|(i, b)| {
+            if *b == b'\n' {
+                last_line_border = Some(*i);
+                true
+            } else {
+                false
+            }
+        }).count() as u32;
+        self.line += added_lines;
 
-        self.line += lines;
+        match last_line_border {
+            Some(i) => {
+                // we had a '\n'
 
-        let col = s[last_pos..].chars().count() as u32;
-        self.column = col;
+                // i is the position of '\n' so we take i+1
+                // and we take 1+count because columns start with 1
+                self.column = 1 + s[i + 1..].chars().count() as u32;
+            }
+            None => {
+                self.column += s.chars().count() as u32;
+            }
+        }
 
         *self
     }
